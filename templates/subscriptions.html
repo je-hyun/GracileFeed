@@ -1,0 +1,67 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% extends "gracile-base.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{url_for('.static', filename='subscriptions.css')}}">
+{% endblock styles %}
+{% block scripts %}
+{{ super() }}
+<!--<script src="{{ url_for('.static', filename='subscriptions.js' )}}"></script>-->
+{% endblock scripts %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            {% with messages = get_flashed_messages() %}
+  {% if messages %}
+            <div id="errorAlert" class="alert alert-danger" role="alert">
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+                </div>
+  {% endif %}
+
+{% endwith %}
+    <h1>Manage Subscriptions</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th class="col-md-10">Subscription name</th>
+            <th class="col-md-1">Daily posts</th>
+            <th class="col-md-1"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <form method="POST" action="/process_add_subscription" id="add_sub_form">
+        {{ form_add_sub.hidden_tag() }}
+            <td>{{ wtf.form_field(form_add_sub.rss_url, placeholder="RSS url") }}</td>
+                <td>{{ wtf.form_field(form_add_sub.daily_amount, placeholder="#") }}</td>
+                <td><button class="btn btn-primary" type="submit" name="submit_add" form="add_sub_form" style="margin-top:20px"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></td>
+            </form>
+        </tr>
+        <form method="POST" action="/process_del_subscription" id="del_sub_form">
+            {{ form_del_sub.hidden_tag() }}
+        {% for sub in user_subscriptions %}
+        <tr>
+            <td>{{ sub.rss_url }}</td>
+            <td>{{ sub.daily_amount }}</td>
+            <td><button class="btn btn-danger" type="submit" name="submit_del" form="del_sub_form" value="{{ sub.rss_url }}"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td>
+        </tr>
+        {% endfor %}
+            </form>
+        </tbody>
+
+
+        </table>
+        </div>
+        <div class="col-md-3"></div>
+        </div>
+</div>
+
+{% endblock body %}

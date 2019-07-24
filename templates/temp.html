@@ -1,0 +1,46 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+GracileFeed RSS Reader
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{url_for('.static', filename='common_styles.css')}}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript" src="{{ url_for('static', filename='feed-page-1.0.0.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+
+        {% for article in feed %}
+        <div class="thumbnail contains-link-spanner">
+            <div class="media">
+                <div class="pull-left">
+                    <img class="media-object align-self-start article-thumbnail" src="{{ article.top_image }}">
+                </div>
+                <div class="media-body">
+                    <h4 class="media-heading">{{ article.title }}</h4>
+                    <p class="text-muted"><a href="{{ article.source_url }}" class="text-muted link-priority"> {{
+                        article.source_name }} </a> / {{ article.publish_date }}</p>
+                    <p class="article-text-preview">{{ article.text|truncate(600) }}</p>
+                </div>
+            </div>
+            <a href="{{ article.url }}">
+                <span class="link-spanner"></span>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock %}
+

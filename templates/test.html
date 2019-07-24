@@ -1,0 +1,25 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% extends "gracile-base.html" %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='test.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+<div class="container">
+	<div id="successAlert" class="alert alert-success" role="alert" style="display:none;"></div>
+	<div id="errorAlert" class="alert alert-danger" role="alert" style="display:none;"></div>
+    <form>
+        {{ form_add_sub.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">{{ wtf.form_field(form_add_sub.rss_url, placeholder="RSS url") }}</div>
+        <div class="col-md-1">{{ wtf.form_field(form_add_sub.daily_amount, placeholder="#") }}</div>
+        <div class="col-md-1">{{ wtf.form_field(form_add_sub.submit_add, class="btn btn-primary", style="margin-top:20px") }}</div>
+        <div class="col-md-4"></div>
+    </div>
+    </form>
+</div>
+{% endblock %}
