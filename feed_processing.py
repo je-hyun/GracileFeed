@@ -1,7 +1,7 @@
 import feedparser
 import bleach
 from newspaper import Article
-
+from dateutil import parser
 
 class GracileArticle:
     def __init__(self, title=None, url=None, source_name=None, source_url=None, publish_date=None, text=None,
@@ -65,7 +65,7 @@ def get_rss_articles(rss_url, max_amount=-1):
 
         # publish_date
         if 'published' in feed['entries'][i]:
-            cur_article.publish_date = feed['entries'][i]['published']
+            cur_article.publish_date = parser.parse(feed['entries'][i]['published'])
         elif newspaper_article.publish_date != '':
             cur_article.publish_date = newspaper_article.publish_date
 

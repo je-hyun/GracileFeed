@@ -1,25 +1,98 @@
-{% import "bootstrap/wtf.html" as wtf %}
 {% extends "gracile-base.html" %}
-
-{% block scripts %}
-{{ super() }}
-<script src="{{ url_for('static', filename='test.js') }}"></script>
-{% endblock %}
 
 {% block content %}
 {{ super() }}
-<div class="container">
-	<div id="successAlert" class="alert alert-success" role="alert" style="display:none;"></div>
-	<div id="errorAlert" class="alert alert-danger" role="alert" style="display:none;"></div>
-    <form>
-        {{ form_add_sub.hidden_tag() }}
+
+<div class="container container-full">
+
     <div class="row">
+        <div class="col-md-3 hidden-xs hidden-sm sidebar">
+            {% include 'feed-sidebar.html' %}
+        </div>
+        <div class="col-md-7">
+            <div class="starter-template">
+                <h1>GracileFeed</h1>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#articleExpanded">
+                Test Button!
+            </button>
+            </div>
+            <!-- Test this -->
+            {% for article in feed %}
+            <div class="contains-link-spanner">
+                <div class="media">
+                    <div class="pull-left">
+                        <img class="media-object align-self-start article-thumbnail" src="{{ article.image_url }}">
+                    </div>
+                    <div class="media-body">
+                        <h4 class="media-heading">{{ article.title }}</h4>
+                        <p class="text-muted"><a href="article.source_url" class="text-muted link-priority">
+                            article.source_name</a> / {{ article.publish_date }}</p>
+                        <p class="article-text-preview">{{ article.text|truncate(600)|striptags }}</p>
+                    </div>
+                </div>
+                <a href="{{ article.url }}">
+                    <span class="link-spanner"></span>
+                </a>
+            </div>
+            <br/>
+            {% endfor %}
+            <!-- End Test -->
+        </div>
         <div class="col-md-2"></div>
-        <div class="col-md-4">{{ wtf.form_field(form_add_sub.rss_url, placeholder="RSS url") }}</div>
-        <div class="col-md-1">{{ wtf.form_field(form_add_sub.daily_amount, placeholder="#") }}</div>
-        <div class="col-md-1">{{ wtf.form_field(form_add_sub.submit_add, class="btn btn-primary", style="margin-top:20px") }}</div>
-        <div class="col-md-4"></div>
     </div>
-    </form>
+</div>
+
+<!-- Button trigger modal -->
+
+
+<!-- Modal -->
+<div class="modal fade floating-content-modal" id="articleExpanded" tabindex="-1" role="dialog"
+     aria-labelledby="articleExpandedLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" style="width:80%">
+        <div class="modal-content">
+
+            <div class="modal-body">
+                <div class="floating-tab text-muted">
+                    <button type="button" data-dismiss="modal"><span class="glyphicon glyphicon-remove"
+                                                                     aria-hidden="true"></span></button>
+                </div>
+                <div class="container container-full">
+                    <div class="row floating-content-div">
+
+
+                        <div class="col-md-2"></div>
+                        <div class="col-md-8">
+                            <h1>This is the Title of the Example Article Which Averages Two to Four Lines</h1>
+                            <p class="text-muted">News_Source / Date_Posted</p>
+                            <img src="static/top_image_example.jpg">
+                            <p>
+                                ...Place content here for the expanded post...<br/>
+                                * Title<br/>
+                                * Url to article<br/>
+                                * Name of source (e.g. bbc.com)<br/>
+                                * Link to source<br/>
+                                * Thumbnail<br/>
+                                * Publish date<br/>
+                                * Text<br/>
+                                <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>Okay now the rest is just to test
+                                scrolling
+                                works.<br/><br/>asdf<br/><br/><br/><br/><br/><br/><br/>some more text and space to
+                                overflow
+                                the
+                                page height...<br/><br/><br/><br/><br/><br/>a little more text over
+                                here<br/><br/><br/><br/>and
+                                so on...
+                            </p>
+                            <button type="button" class="btn btn-default center-block container-full">Visit website
+                            </button>
+                        </div>
+                        <div class="col-md-2"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
