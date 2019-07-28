@@ -1,0 +1,5 @@
+.DS_Store
+.flaskenv.py
+.idea/
+__pycache__/
+database.db
