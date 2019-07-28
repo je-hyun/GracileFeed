@@ -18,6 +18,15 @@ class GracileArticle:
         return f"title:{self.title} url:{self.url} source_name:{self.source_name} source_url:{self.source_url}" \
             f" publish_date:{self.publish_date} text:{self.text} top_image:{self.top_image}"
 
+def get_source_from_rss(rss_url):
+    """
+    Given an rss url, returns a dictionary with rss_url, homepage_url and name.
+    :param rss_url:
+    :return:
+    """
+    pass
+
+# From a subscription, return the source and article.
 def get_rss_articles(rss_url, max_amount=-1):
     """
     Returns a list of GracileArticle objects from rss url. It first uses data from rss metadata, and then fills the
