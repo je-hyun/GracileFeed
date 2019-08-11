@@ -1,7 +1,9 @@
 import feedparser
 import bleach
-from newspaper import Article
+import newspaper
 from dateutil import parser
+from models import User, Source, Subscription, Article, ArticleSource, Favorite
+
 
 class GracileArticle:
     def __init__(self, title=None, url=None, source_name=None, source_url=None, publish_date=None, text=None,
@@ -14,17 +16,40 @@ class GracileArticle:
         self.publish_date = publish_date
         self.text = text
 
+    @classmethod
+    def from_model(cls, article, source):
+        title = article.title
+        url = article.url
+        source_name = source.name
+        source_url = source.homepage_url
+        publish_date = article.publish_date
+        text = article.text
+        top_image = article.image_url
+        return cls(
+            title=title,
+            url=url,
+            source_name=source_name,
+            source_url=source_url,
+            publish_date=publish_date,
+            text=text,
+            top_image=top_image
+        )
+
     def __str__(self):
         return f"title:{self.title} url:{self.url} source_name:{self.source_name} source_url:{self.source_url}" \
             f" publish_date:{self.publish_date} text:{self.text} top_image:{self.top_image}"
 
 def get_source_from_rss(rss_url):
     """
-    Given an rss url, returns a dictionary with rss_url, homepage_url and name.
-    :param rss_url:
-    :return:
+    Given an rss url, returns a dictionary with rss_url, homepage_url and name. Note: If these are not defined in RSS,
+    it is possible to raise an AttributeError.
+    :param rss_url: the url for the rss to parse
+    :return: A database Source object with information from the rss.
     """
-    pass
+    feed = feedparser.parse(rss_url)
+    homepage_url = feed['feed']['link']
+    name = feed['feed']['title']
+    return Source(rss_url=rss_url, homepage_url=homepage_url, name=name)
 
 # From a subscription, return the source and article.
 def get_rss_articles(rss_url, max_amount=-1):
@@ -34,7 +59,6 @@ def get_rss_articles(rss_url, max_amount=-1):
 
     For text and top_image, scraped data is prioritized and RSS is used as fallback.
     For the rest, RSS metadata is prioritized and scraped data is used as fallback.
-    For source_name,
 
     :param rss_url: the url to rss feed
     :param max_amount: maximum number of articles to fetch
@@ -50,7 +74,7 @@ def get_rss_articles(rss_url, max_amount=-1):
         # url
         if 'link' in feed['entries'][i]:
             cur_article.url = feed['entries'][i]['link']
-            newspaper_article = Article(feed['entries'][i]['link'])
+            newspaper_article = newspaper.Article(feed['entries'][i]['link'])
             newspaper_article.download()
             newspaper_article.parse()
 

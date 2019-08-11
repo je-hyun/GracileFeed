@@ -49,7 +49,7 @@
             {{ form_del_sub.hidden_tag() }}
         {% for sub in user_subscriptions %}
         <tr>
-            <td>{{ sub.rss_url }}</td>
+            <td>{{ sub.source.name }}</td>
             <td>{{ sub.daily_amount }}</td>
             <td><button class="btn btn-danger" type="submit" name="submit_del" form="del_sub_form" value="{{ sub.rss_url }}"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td>
         </tr>

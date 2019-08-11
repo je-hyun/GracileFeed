@@ -7,8 +7,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
-    subscriptions = db.relationship('Subscription', backref='user')
-    favorites = db.relationship('Favorite', backref='user')
+    subscriptions = db.relationship('Subscription', cascade="all,delete", backref='user') #subscriptions = db.relationship('Subscription', cascade = "all,delete", backref='user')
+    favorites = db.relationship('Favorite', cascade="all,delete", backref='user')
 
     def __repr__(self):
         return f'User {self.username}'
@@ -17,8 +17,8 @@ class Source(db.Model):
     rss_url = db.Column(db.String(512), primary_key=True)
     homepage_url = db.Column(db.String(512))
     name = db.Column(db.String(80))
-    subscriptions = db.relationship('Subscription', backref='source')
-    articles = db.relationship('ArticleSource', backref='source')
+    subscriptions = db.relationship('Subscription', cascade="all,delete", backref='source')
+    articles = db.relationship('ArticleSource', cascade="all,delete", backref='source')
 
     def __repr__(self):
         return f'Source {self.rss_url}'
@@ -37,8 +37,8 @@ class Article(db.Model):
     image_url = db.Column(db.String(512))
     publish_date = db.Column(db.DateTime())
     text = db.Column(db.Text())
-    source = db.relationship('ArticleSource', backref='article')
-    favorites = db.relationship('Favorite', backref='article')
+    source = db.relationship('ArticleSource', cascade="all,delete", backref='article')
+    favorites = db.relationship('Favorite', cascade="all,delete", backref='article')
 
     def __repr__(self):
         return f'Article {self.url}'

@@ -5,7 +5,7 @@ from models import User, Source, Subscription, Article, ArticleSource, Favorite
 from flask import render_template, redirect, url_for, request, jsonify, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
-from feed_processing import get_rss_articles
+from feed_processing import GracileArticle, get_rss_articles, get_source_from_rss
 
 #Testing variables
 RSS_FEEDS_LIST = {'bbc': 'http://feeds.bbci.co.uk/news/rss.xml',
@@ -20,27 +20,26 @@ RSS_TEST = RSS_FEEDS_LIST['smbc']
 
 def cache_subscription(subscription: Subscription):
     '''
-    Downloads articles into database tables ArticleSource and Article from Subscription object.
+    Takes a Subscription and downloads its articles into the database (in tables ArticleSource and Article)
     :param subscription: Subscription object which contains user_id, rss_url and daily_amount.
     :return:
     '''
-    #TODO: This assumes that no articles from source were already cached. Need to check number of articles cached and
-    # add the difference in final version.
     li_gracile_articles = get_rss_articles(rss_url=subscription.rss_url, max_amount=subscription.daily_amount)
     for ga in li_gracile_articles:
-        new_article = Article(url=ga.url, title=ga.title, image_url=ga.top_image, publish_date=ga.publish_date,
-                              text=ga.text)
-        db.session.add(new_article)
-        new_articlesource = ArticleSource(article=new_article, source=Source.query.filter_by(
-            rss_url=subscription.rss_url).first())
-        db.session.add(new_articlesource)
+        my_article = Article.query.filter_by(url=ga.url).first()
+        if not my_article:
+            my_article = Article(url=ga.url, title=ga.title, image_url=ga.top_image, publish_date=ga.publish_date,
+                                  text=ga.text)
+            db.session.add(my_article)
+            new_articlesource = ArticleSource(article=my_article, source=Source.query.filter_by(
+                rss_url=subscription.rss_url).first())
+            db.session.add(new_articlesource)
     db.session.commit()
 
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        feed = get_rss_articles(RSS_TEST, 10)
-        return render_template('feed.html', feed=feed)
+        return redirect(url_for('feed'))
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -81,19 +80,21 @@ def subscriptions():
 
 @app.route('/process_add_subscription', methods=['POST'])
 def process_add_subscription():
-    # TODO: problem - source homepage_url and name need to be found.
     form_add_sub = SubscriptionAddForm()
+
     if form_add_sub.validate():
         # add source if it doesn't exist
         source = Source.query.filter_by(rss_url=form_add_sub.rss_url.data).first()
         if not source:
-            source = Source(rss_url=form_add_sub.rss_url.data, homepage_url=form_add_sub.rss_url.data,
-                            name=form_add_sub.rss_url.data)
+            source = get_source_from_rss(form_add_sub.rss_url.data)
             db.session.add(source)
+            db.session.commit()
+
         # Find the user and source for subscription
         sub_user = User.query.filter_by(id=current_user.id).first()
         if not sub_user:
             raise Exception('Current user not found in database. The account may have been deleted.')
+
         # add subscription for current user
         sub = Subscription(user=sub_user, source=source,
                            daily_amount=form_add_sub.daily_amount.data)
@@ -101,6 +102,7 @@ def process_add_subscription():
         db.session.commit()
         cache_subscription(sub)
         return redirect(url_for('subscriptions'))
+
     flash('Error: could not subscribe. Please check your url and daily amount.')
     return redirect(url_for('subscriptions'))
 
@@ -111,20 +113,33 @@ def process_del_subscription():
         db.session.query(Subscription).filter(Subscription.user_id == current_user.id,
                                               Subscription.rss_url == sub_url_to_delete).first()
     db.session.delete(sub_to_delete)
-    # If no subscribers exist for deleted url, delete the source as well.
-    subscriber_query = db.session.query(Subscription).filter(Subscription.rss_url == sub_url_to_delete)
-    if not subscriber_query.first():
-        source_to_delete = db.session.query(Source).filter(Source.rss_url == sub_url_to_delete).first()
-        db.session.delete(source_to_delete)
     db.session.commit()
     return redirect(url_for('subscriptions'))
 
-
-@app.route('/test')
+@app.route('/logout')
 @login_required
-def test():
-    feed = Article.query.all()
-    return render_template('test.html', feed=feed)
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+# ============================================================
+# ======================== TEST VIEWS ========================
+# ============================================================
+
+@app.route('/feed')
+@login_required
+def feed():
+    # Find all articles associated with ArticleSource associated with Source associated with Subscriptions to
+    # current_user
+    gracile_articles = []
+    user_subscriptions = Subscription.query.filter_by(user_id=current_user.id)
+    for sub in user_subscriptions:
+        user_article_sources = ArticleSource.query.filter_by(rss_url=sub.source.rss_url).\
+            join(ArticleSource.article).order_by(Article.publish_date.desc()).limit(sub.daily_amount)
+        for art_src in user_article_sources:
+            gracile_articles.append(GracileArticle.from_model(article=art_src.article, source=sub.source))
+
+    return render_template('feed.html', feed=gracile_articles, user_subscriptions=user_subscriptions)
 
 @app.route('/testAjax')
 def testAjax():
@@ -137,15 +152,10 @@ def process():
     user_id = current_user.id
     rss_url = form_add_sub.rss_url.data
     daily_amount = form_add_sub.daily_amount.data
-    if form_add_sub.validate_on_submit(): #user_id and rss_url and daily_amount:
+    if form_add_sub.validate_on_submit():
         new_sub = Subscription(user_id=user_id, rss_url=rss_url, daily_amount=daily_amount)
         db.session.add(new_sub)
         db.session.commit()
         return jsonify({'rss_url': rss_url})
     return jsonify({'error': f'Error! {form_add_sub.errors}'})
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))

@@ -2,6 +2,10 @@
 <span style="float:left;"><strong>Subscriptions</strong></span><a href="/subscriptions"><span style="float:right;"
                                                                          class="glyphicon glyphicon-cog"
                                                                          aria-hidden="true"></span></a><br/>
-<span style="float:left;">BBC news</span><span style="float:right;">10</span><br/>
-<span style="float:left;">New York Times</span><span style="float:right;">5</span><br/>
-<span style="float:left;">Saturday Morning Breakfast Cereal</span><span style="float:right;">2</span><br/>
+{% if user_subscriptions is not defined %}
+<span style="float:left;">You have no subscriptions yet.</span><span style="float:right;"></span><br/>
+{% else %}
+{% for sub in user_subscriptions %}
+<span style="float:left;">{{ sub.source.name }}</span><span style="float:right;">{{ sub.daily_amount }}</span><br/>
+{% endfor %}
+{% endif %}
