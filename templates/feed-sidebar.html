@@ -3,7 +3,7 @@
                                                                          class="glyphicon glyphicon-cog"
                                                                          aria-hidden="true"></span></a><br/>
 {% if (user_subscriptions is not defined) or not (user_subscriptions|first) %}
-<span style="float:left;">You have no subscriptions yet.</span><span style="float:right;"></span><br/>
+<span style="float:left;">You have no subscriptions yet. <a href="{{ url_for('subscriptions') }}">Add new subscriptions?</a></span><span style="float:right;"></span><br/>
 {% else %}
 {% for sub in user_subscriptions %}
 <span style="float:left;">{{ sub.source.name }}</span><span style="float:right;">{{ sub.daily_amount }}</span><br/>
