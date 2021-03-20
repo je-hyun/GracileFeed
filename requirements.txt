@@ -19,7 +19,7 @@ geopy==1.20.0
 idna==2.8
 itsdangerous==1.1.0
 jieba3k==0.35.1
-Jinja2==2.10.1
+Jinja2==2.11.3
 lxml==4.3.4
 Mako==1.0.14
 MarkupSafe==1.1.1
