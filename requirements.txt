@@ -25,7 +25,7 @@ Mako==1.0.14
 MarkupSafe==1.1.1
 newspaper3k==0.2.8
 nltk==3.4.4
-Pillow==6.1.0
+Pillow==9.3.0
 python-dateutil==2.8.0
 python-dotenv==0.10.3
 python-editor==1.0.4
